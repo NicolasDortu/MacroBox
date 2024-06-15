@@ -5,7 +5,7 @@
 			"label": "build",
 			"type": "shell",
 			"command": "g++",
-			"args": ["-g", "main.cpp", "-o", "MacroBox.exe", "-lgdi32"],
+			"args": ["-g", "main.cpp", "-o", "MacroBox.exe", "-lgdi32", "-lcomctl32"],
 			"group": {
 				"kind": "build",
 				"isDefault": true
