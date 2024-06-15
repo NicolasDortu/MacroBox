@@ -5,7 +5,7 @@
       "name": "Launch MacroBox",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/MacroBox.exe",
+      "program": "${workspaceFolder}/build/MacroBox.exe",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
