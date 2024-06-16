@@ -29,7 +29,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   RegisterClass(&dialogWc);
 
-  // Load the gear icon and logo icon from base64
+  // Load the gear icon from base64
   hGearIcon = LoadIconFromBase64(gearIconBase64);
   HICON hLogoIcon = LoadIconFromBase64(logoIconBase64);
 
@@ -39,7 +39,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
       CLASS_NAME,
       "Macro Box",
       WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, CW_USEDEFAULT, 500, 400,
+      CW_USEDEFAULT, CW_USEDEFAULT, 550, 400,
       NULL,
       NULL,
       hInstance,
@@ -57,7 +57,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   ShowWindow(hwnd, nCmdShow);
 
   // Load user configuration
-  LoadConfiguration();
+  std::string gridLayout;
+  LoadConfiguration(gridLayout, buttonMacros);
 
   // Register hotkeys
   RegisterHotKeys(hwnd);

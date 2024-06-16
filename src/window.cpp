@@ -1,18 +1,20 @@
 #include "window.h"
 #include "dialog.h"
 #include "utils.h"
-#include <fstream>
 #include <string>
+#include <vector>
 
-HWND hButton1, hButton2, hGearButton1, hGearButton2;
 HICON hGearIcon;
-std::string button1Macro;
-std::string button2Macro;
+std::vector<HWND> buttonHandles;
+std::vector<HWND> gearButtonHandles;
+std::vector<std::string> buttonMacros;
 
 void RegisterHotKeys(HWND hwnd)
 {
-  RegisterHotKey(hwnd, ID_HOTKEY1, MOD_CONTROL, '1');
-  RegisterHotKey(hwnd, ID_HOTKEY2, MOD_CONTROL, '2');
+  for (size_t i = 0; i < buttonHandles.size(); ++i)
+  {
+    RegisterHotKey(hwnd, ID_HOTKEY1 + i, MOD_CONTROL, '1' + i);
+  }
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -20,118 +22,87 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   switch (uMsg)
   {
   case WM_CREATE:
-    AddControls(hwnd);
+  {
+    std::string gridLayout;
+    LoadConfiguration(gridLayout, buttonMacros);
+    AddControls(hwnd, gridLayout);
     return 0;
-
+  }
   case WM_COMMAND:
-    switch (LOWORD(wParam))
+  {
+    int controlId = LOWORD(wParam);
+    if (controlId >= 1 && controlId <= buttonHandles.size())
     {
-    case 1:
-      ExecuteMacro(button1Macro);
-      break;
-    case 2:
-      ExecuteMacro(button2Macro);
-      break;
-    case 101:
-      ShowMacroInputDialog(hwnd, 1);
-      break;
-    case 102:
-      ShowMacroInputDialog(hwnd, 2);
-      break;
+      ExecuteMacro(buttonMacros[controlId - 1]);
+    }
+    else if (controlId >= 101 && controlId < 101 + buttonHandles.size())
+    {
+      ShowMacroInputDialog(hwnd, controlId - 100);
     }
     return 0;
-
+  }
   case WM_HOTKEY:
-    switch (wParam)
+  {
+    int hotkeyId = wParam;
+    if (hotkeyId >= ID_HOTKEY1 && hotkeyId < ID_HOTKEY1 + buttonHandles.size())
     {
-    case ID_HOTKEY1:
-      SendMessage(hwnd, WM_COMMAND, 1, 0);
-      break;
-    case ID_HOTKEY2:
-      SendMessage(hwnd, WM_COMMAND, 2, 0);
-      break;
+      SendMessage(hwnd, WM_COMMAND, hotkeyId - ID_HOTKEY1 + 1, 0);
     }
     return 0;
-
+  }
   case WM_CLOSE:
-    UnregisterHotKey(hwnd, ID_HOTKEY1);
-    UnregisterHotKey(hwnd, ID_HOTKEY2);
+  {
+    for (size_t i = 0; i < buttonHandles.size(); ++i)
+    {
+      UnregisterHotKey(hwnd, ID_HOTKEY1 + i);
+    }
     DestroyWindow(hwnd);
     return 0;
-
+  }
   case WM_DESTROY:
+  {
     PostQuitMessage(0);
     return 0;
+  }
   }
   return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-void AddControls(HWND hwnd)
+void AddControls(HWND hwnd, const std::string &gridLayout)
 {
-  hButton1 = CreateWindow(
-      "BUTTON",
-      "Button 1",
-      WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-      50, 50, 150, 50,
-      hwnd,
-      (HMENU)1,
-      (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-      NULL);
+  int rows = 3, cols = 3; // Default to 3x3 grid
+  sscanf(gridLayout.c_str(), "%dx%d", &rows, &cols);
 
-  hGearButton1 = CreateWindow(
-      "BUTTON",
-      NULL,
-      WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_ICON,
-      205, 50, 25, 50,
-      hwnd,
-      (HMENU)101,
-      (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-      NULL);
-
-  SendMessage(hGearButton1, BM_SETIMAGE, IMAGE_ICON, (LPARAM)hGearIcon);
-
-  hButton2 = CreateWindow(
-      "BUTTON",
-      "Button 2",
-      WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-      50, 150, 150, 50,
-      hwnd,
-      (HMENU)2,
-      (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-      NULL);
-
-  hGearButton2 = CreateWindow(
-      "BUTTON",
-      NULL,
-      WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_ICON,
-      205, 150, 25, 50,
-      hwnd,
-      (HMENU)102,
-      (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-      NULL);
-
-  SendMessage(hGearButton2, BM_SETIMAGE, IMAGE_ICON, (LPARAM)hGearIcon);
-}
-
-void LoadConfiguration()
-{
-  std::ifstream config("macros.cfg");
-  if (config.is_open())
+  int buttonId = 1;
+  for (int row = 0; row < rows; ++row)
   {
-    std::getline(config, button1Macro);
-    std::getline(config, button2Macro);
-    config.close();
-  }
-}
+    for (int col = 0; col < cols; ++col)
+    {
+      HWND hButton = CreateWindow(
+          "BUTTON",
+          ("Button " + std::to_string(buttonId)).c_str(),
+          WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+          50 + col * 150, 50 + row * 50, 100, 50,
+          hwnd,
+          reinterpret_cast<HMENU>(buttonId),
+          (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
+          NULL);
+      buttonHandles.push_back(hButton);
 
-void SaveConfiguration()
-{
-  std::ofstream config("macros.cfg");
-  if (config.is_open())
-  {
-    config << button1Macro << std::endl;
-    config << button2Macro << std::endl;
-    config.close();
+      HWND hGearButton = CreateWindow(
+          "BUTTON",
+          NULL,
+          WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_ICON,
+          160 + col * 150, 50 + row * 50, 30, 30,
+          hwnd,
+          reinterpret_cast<HMENU>(100 + buttonId),
+          (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
+          NULL);
+      SendMessage(hGearButton, BM_SETIMAGE, IMAGE_ICON, (LPARAM)hGearIcon);
+      gearButtonHandles.push_back(hGearButton);
+
+      buttonId++;
+    }
   }
 }
 
@@ -139,7 +110,6 @@ void ExecuteMacro(const std::string &command)
 {
   if (!command.empty())
   {
-    // Execute the command
     system(command.c_str());
   }
   else

@@ -1,4 +1,7 @@
 #include "utils.h"
+#include <fstream>
+#include <sstream>
+#include <iterator>
 
 std::vector<unsigned char> base64_decode(const std::string &in)
 {
@@ -41,4 +44,43 @@ HICON LoadIconFromBase64(const std::string &base64)
       LR_DEFAULTCOLOR);
 
   return hIcon;
+}
+
+void LoadConfiguration(std::string &gridLayout, std::vector<std::string> &buttonMacros)
+{
+  std::ifstream config("macros.cfg");
+  buttonMacros.clear();   // Clear any existing macros to prevent duplication
+  int rows = 3, cols = 3; // Default to 3x3 grid
+  if (config.is_open())
+  {
+    std::string line;
+    while (std::getline(config, line))
+    {
+      if (line.find("grid_layout:") == 0)
+      {
+        gridLayout = line.substr(line.find(":") + 1);
+        sscanf(gridLayout.c_str(), "%dx%d", &rows, &cols);
+      }
+      else if (line.find("button") == 0)
+      {
+        buttonMacros.push_back(line.substr(line.find(":") + 1));
+      }
+    }
+    config.close();
+  }
+  buttonMacros.resize(rows * cols); // Ensure the vector is properly sized
+}
+
+void SaveConfiguration(const std::string &gridLayout, const std::vector<std::string> &buttonMacros)
+{
+  std::ofstream config("macros.cfg");
+  if (config.is_open())
+  {
+    config << "grid_layout:" << gridLayout << std::endl;
+    for (size_t i = 0; i < buttonMacros.size(); ++i)
+    {
+      config << "button" << (i + 1) << "_macro:" << buttonMacros[i] << std::endl;
+    }
+    config.close();
+  }
 }

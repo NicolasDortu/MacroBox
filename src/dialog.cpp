@@ -16,7 +16,7 @@ LRESULT CALLBACK MacroDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
       char buffer[256];
       GetWindowText(GetDlgItem(hDlg, IDC_MACRO_EDIT), buffer, 256);
       *currentMacro = buffer;
-      SaveConfiguration();
+      SaveConfiguration("3x3", buttonMacros); // Assuming 3x3 for example
       DestroyWindow(hDlg);
       return (INT_PTR)TRUE;
     }
@@ -36,6 +36,13 @@ void ShowMacroInputDialog(HWND hwnd, int buttonId)
 {
   HINSTANCE hInstance = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE);
 
+  // Ensure buttonId is within bounds
+  if (buttonId < 1 || buttonId > buttonMacros.size())
+  {
+    MessageBox(hwnd, "Invalid button ID", "Error", MB_OK);
+    return;
+  }
+
   HWND hDlg = CreateWindowEx(
       WS_EX_DLGMODALFRAME,
       "MacroDialogClass",
@@ -53,7 +60,7 @@ void ShowMacroInputDialog(HWND hwnd, int buttonId)
     return;
   }
 
-  std::string *currentMacro = (buttonId == 1) ? &button1Macro : &button2Macro;
+  std::string *currentMacro = &buttonMacros[buttonId - 1];
 
   HWND hEditMacro = CreateWindow(
       "EDIT",
