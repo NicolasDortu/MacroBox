@@ -2,6 +2,17 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "compile resources",
+			"type": "shell",
+			"command": "windres",
+			"args": ["resource.rc", "-O", "coff", "-o", "resource.o"],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": []
+		},
+		{
 			"label": "build",
 			"type": "shell",
 			"command": "g++",
@@ -11,6 +22,7 @@
 				"src/window.cpp",
 				"src/dialog.cpp",
 				"src/utils.cpp",
+				"resource.o",
 				"-Iinclude",
 				"-o",
 				"build/MacroBox.exe",
@@ -18,6 +30,7 @@
 				"-lcomctl32",
 				"-mwindows"
 			],
+			"dependsOn": "compile resources",
 			"group": {
 				"kind": "build",
 				"isDefault": true

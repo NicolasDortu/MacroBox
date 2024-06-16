@@ -2,8 +2,7 @@
 #include "window.h"
 #include "utils.h"
 #include "dialog.h"
-
-const std::string gearIconBase64 = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAM5JREFUOI1jZCAS8Cuo/IexPz64w0isPrhmz3kb/nvO2/Af2SCSNJuXtWDVzEKSaWgGMzAwMDCRokkjLIGBX0HlP7+Cyn+NsAQGBgYGBryBAbOFS1ySQc7eHUP+xqoFuF3Ar6Dyn0tckkEjLIHh28vnDI8O7sTQ/PHBHUasLoBpNkgvZnh34wpcAzKARSVGIGLTDLMdW/wzEqP528vnOBMPIyWa4QaQq5mBgYGBEaYZOZqI1czAgJSQTnbVkKwZxQUwQIpmBgakMIAJkJpVAdF9g4siKN0uAAAAAElFTkSuQmCC";
+#include "icons.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -30,8 +29,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   RegisterClass(&dialogWc);
 
-  // Load the gear icon from base64
+  // Load the gear icon and logo icon from base64
   hGearIcon = LoadIconFromBase64(gearIconBase64);
+  HICON hLogoIcon = LoadIconFromBase64(logoIconBase64);
 
   // Create the window
   HWND hwnd = CreateWindowEx(
@@ -49,6 +49,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   {
     return 0;
   }
+
+  // Set the window icon
+  SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hLogoIcon);
+  SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hLogoIcon);
 
   ShowWindow(hwnd, nCmdShow);
 
