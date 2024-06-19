@@ -33,13 +33,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   hGearIcon = LoadIconFromBase64(gearIconBase64);
   HICON hLogoIcon = LoadIconFromBase64(logoIconBase64);
 
-  // Create the window
+  // Load user configuration
+  std::string gridLayout;
+  LoadConfiguration(gridLayout, buttonMacros);
+  int rows = 3, cols = 3; // Default to 3x3 grid
+  sscanf(gridLayout.c_str(), "%dx%d", &rows, &cols);
+
+  // Create the window with adjusted size
   HWND hwnd = CreateWindowEx(
       0,
       CLASS_NAME,
       "Macro Box",
       WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, CW_USEDEFAULT, 550, 400,
+      CW_USEDEFAULT, CW_USEDEFAULT, 100 + cols * 150, 100 + rows * 50 + 50,
       NULL,
       NULL,
       hInstance,
@@ -55,10 +61,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hLogoIcon);
 
   ShowWindow(hwnd, nCmdShow);
-
-  // Load user configuration
-  std::string gridLayout;
-  LoadConfiguration(gridLayout, buttonMacros);
 
   // Register hotkeys
   RegisterHotKeys(hwnd);

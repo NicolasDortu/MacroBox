@@ -5,7 +5,13 @@
 			"label": "compile resources",
 			"type": "shell",
 			"command": "windres",
-			"args": ["resource.rc", "-O", "coff", "-o", "resource.o"],
+			"args": [
+				"resource/resource.rc",
+				"-O",
+				"coff",
+				"-o",
+				"resource/resource.o"
+			],
 			"group": {
 				"kind": "build",
 				"isDefault": false
@@ -22,7 +28,7 @@
 				"src/window.cpp",
 				"src/dialog.cpp",
 				"src/utils.cpp",
-				"resource.o",
+				"resource/resource.o",
 				"-Iinclude",
 				"-o",
 				"build/MacroBox.exe",
