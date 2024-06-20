@@ -7,29 +7,37 @@
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
   const char CLASS_NAME[] = "MacroBoxWindowClass";
-  const char DIALOG_CLASS_NAME[] = "MacroDialogClass";
+  const char MACRO_DIALOG_CLASS_NAME[] = "MacroDialogClass";
+  const char GRID_DIALOG_CLASS_NAME[] = "GridLayoutDialogClass";
 
-  // Register the window class
+  // Register the main window class
   WNDCLASS wc = {};
-
-  wc.lpfnWndProc = WindowProc;
+  wc.lpfnWndProc = WindowProc; // Set the window procedure
   wc.hInstance = hInstance;
   wc.lpszClassName = CLASS_NAME;
   wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
   RegisterClass(&wc);
 
-  // Register the dialog class
-  WNDCLASS dialogWc = {};
+  // Register the macro dialog class
+  WNDCLASS macroDialogWc = {};
+  macroDialogWc.lpfnWndProc = MacroDialogProc; // Set the dialog procedure
+  macroDialogWc.hInstance = hInstance;
+  macroDialogWc.lpszClassName = MACRO_DIALOG_CLASS_NAME;
+  macroDialogWc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
-  dialogWc.lpfnWndProc = MacroDialogProc;
-  dialogWc.hInstance = hInstance;
-  dialogWc.lpszClassName = DIALOG_CLASS_NAME;
-  dialogWc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+  RegisterClass(&macroDialogWc);
 
-  RegisterClass(&dialogWc);
+  // Register the grid layout dialog class
+  WNDCLASS gridDialogWc = {};
+  gridDialogWc.lpfnWndProc = GridLayoutDialogProc; // Set the dialog procedure
+  gridDialogWc.hInstance = hInstance;
+  gridDialogWc.lpszClassName = GRID_DIALOG_CLASS_NAME;
+  gridDialogWc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
-  // Load the gear icon from base64
+  RegisterClass(&gridDialogWc);
+
+  // Load icons from base64 strings
   hGearIcon = LoadIconFromBase64(gearIconBase64);
   HICON hLogoIcon = LoadIconFromBase64(logoIconBase64);
 
@@ -39,7 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   int rows = 3, cols = 3; // Default to 3x3 grid
   sscanf(gridLayout.c_str(), "%dx%d", &rows, &cols);
 
-  // Create the window with adjusted size
+  // Create the main window with adjusted size based on grid layout
   HWND hwnd = CreateWindowEx(
       0,
       CLASS_NAME,
@@ -62,10 +70,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   ShowWindow(hwnd, nCmdShow);
 
-  // Register hotkeys
+  // Register hotkeys for the application
   RegisterHotKeys(hwnd);
 
-  // Run the message loop
+  // Main message loop to keep the application running
   MSG msg = {};
   while (GetMessage(&msg, NULL, 0, 0))
   {

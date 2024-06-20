@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iterator>
 
+// Base64 decoding function
 std::vector<unsigned char> base64_decode(const std::string &in)
 {
   std::string base64_chars =
@@ -31,6 +32,7 @@ std::vector<unsigned char> base64_decode(const std::string &in)
   return out;
 }
 
+// Load icon from a base64 encoded string
 HICON LoadIconFromBase64(const std::string &base64)
 {
   std::vector<unsigned char> decodedData = base64_decode(base64);
@@ -46,10 +48,11 @@ HICON LoadIconFromBase64(const std::string &base64)
   return hIcon;
 }
 
+// Load configuration from a file
 void LoadConfiguration(std::string &gridLayout, std::vector<std::string> &buttonMacros)
 {
   std::ifstream config("macros.cfg");
-  buttonMacros.clear();   // Clear any existing macros to prevent duplication
+  buttonMacros.clear();   // Clear existing macros to prevent duplication
   int rows = 3, cols = 3; // Default to 3x3 grid
   if (config.is_open())
   {
@@ -71,16 +74,53 @@ void LoadConfiguration(std::string &gridLayout, std::vector<std::string> &button
   buttonMacros.resize(rows * cols); // Ensure the vector is properly sized
 }
 
-void SaveConfiguration(const std::string &gridLayout, const std::vector<std::string> &buttonMacros)
+// Save macro configuration to a file (preserving grid layout)
+void SaveConfigurationMacro(const std::vector<std::string> &buttonMacros)
 {
-  std::ofstream config("macros.cfg");
-  if (config.is_open())
+  std::ifstream config_in("macros.cfg");
+  std::ofstream config_out("macros.tmp");
+  std::string gridLayout;
+
+  if (config_in.is_open() && config_out.is_open())
   {
-    config << "grid_layout:" << gridLayout << std::endl;
+    std::getline(config_in, gridLayout);   // Read the first line (grid layout)
+    config_out << gridLayout << std::endl; // Write it to the temp file
+
     for (size_t i = 0; i < buttonMacros.size(); ++i)
     {
-      config << "button" << (i + 1) << "_macro:" << buttonMacros[i] << std::endl;
+      config_out << "button" << (i + 1) << "_macro:" << buttonMacros[i] << std::endl;
     }
-    config.close();
+
+    config_in.close();
+    config_out.close();
+
+    std::remove("macros.cfg");
+    std::rename("macros.tmp", "macros.cfg");
+  }
+}
+
+// Save grid configuration to a file (preserving macros)
+void SaveConfigurationGrid(const std::string &gridLayout)
+{
+  std::ifstream config_in("macros.cfg");
+  std::ofstream config_out("macros.tmp");
+  std::vector<std::string> buttonMacros;
+  std::string line;
+
+  if (config_in.is_open() && config_out.is_open())
+  {
+    std::getline(config_in, line);                           // Skip the old grid layout line
+    config_out << "grid_layout:" << gridLayout << std::endl; // Write the new grid layout
+
+    while (std::getline(config_in, line))
+    {
+      config_out << line << std::endl; // Copy remaining lines
+    }
+
+    config_in.close();
+    config_out.close();
+
+    std::remove("macros.cfg");
+    std::rename("macros.tmp", "macros.cfg");
   }
 }
