@@ -9,6 +9,12 @@ std::vector<HWND> buttonHandles;       // Handles to the macro buttons
 std::vector<HWND> gearButtonHandles;   // Handles to the gear buttons
 std::vector<std::string> buttonMacros; // List of macros for each button
 
+// Global variable to track CTRL key state
+bool ctrlPressed = false;
+
+// Global variable to store deferred action
+std::vector<int> digitsPressed;
+
 void RegisterHotKeys(HWND hwnd)
 {
   // Register CTRL+number hotkeys for each button
@@ -63,14 +69,61 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return 0;
   }
+  case WM_KEYDOWN:
+  {
+    if (wParam == VK_CONTROL)
+    {
+      ctrlPressed = true;
+    }
+    return 0;
+  }
+
+  case WM_KEYUP:
+  {
+    if (wParam == VK_CONTROL)
+    {
+      ctrlPressed = false;
+      if (!digitsPressed.empty())
+      {
+        // Concatenate the digits to form the hotkey string
+        std::string hotkeyStr;
+        for (int digit : digitsPressed)
+        {
+          hotkeyStr += std::to_string(digit);
+        }
+
+        // Convert the hotkey string to an integer
+        int hotkeyId = std::stoi(hotkeyStr) - 1; // Adjust to zero-based index
+        if (hotkeyId >= 0 && hotkeyId < buttonHandles.size())
+        {
+          // Execute the macro corresponding to the hotkey
+          SendMessage(hwnd, WM_COMMAND, hotkeyId + 1, 0);
+        }
+
+        // Clear the digits vector
+        digitsPressed.clear();
+      }
+    }
+    return 0;
+  }
+
   case WM_HOTKEY:
   {
     // Handle hotkey presses
     int hotkeyId = wParam;
     if (hotkeyId >= ID_HOTKEY1 && hotkeyId < ID_HOTKEY1 + buttonHandles.size())
     {
-      // Simulate button click when hotkey is pressed
-      SendMessage(hwnd, WM_COMMAND, hotkeyId - ID_HOTKEY1 + 1, 0);
+      if (ctrlPressed)
+      {
+        // If CTRL is pressed, defer the action
+        int digit = hotkeyId - ID_HOTKEY1 + 1;
+        digitsPressed.push_back(digit);
+      }
+      else
+      {
+        // If CTRL is not pressed, execute immediately
+        SendMessage(hwnd, WM_COMMAND, hotkeyId - ID_HOTKEY1 + 1, 0);
+      }
     }
     return 0;
   }
