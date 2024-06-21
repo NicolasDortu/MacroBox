@@ -13,12 +13,16 @@
 #define IDC_BUTTON_MODIFY_GRID 1004
 #define IDC_EDIT_ROWS 1005
 #define IDC_EDIT_COLS 1006
+#define IDM_TRAY_EXIT 2000
 
 // Global variables
 extern HICON hGearIcon;
+extern HICON hLogoIcon;
+extern HICON hLogoIconTray;
 extern std::vector<HWND> buttonHandles;
 extern std::vector<HWND> gearButtonHandles;
 extern std::vector<std::string> buttonMacros;
+extern NOTIFYICONDATA nid;
 
 // Function declarations
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

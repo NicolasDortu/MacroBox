@@ -3,11 +3,15 @@
 #include "utils.h"
 #include <string>
 #include <vector>
+#include <shellapi.h>
 
 HICON hGearIcon;                       // Global icon handle
+HICON hLogoIconTray;                   // Global logo icon handle
 std::vector<HWND> buttonHandles;       // Handles to the macro buttons
 std::vector<HWND> gearButtonHandles;   // Handles to the gear buttons
 std::vector<std::string> buttonMacros; // List of macros for each button
+
+NOTIFYICONDATA nid; // Notification icon data
 
 // Global variable to track CTRL key state
 bool ctrlPressed = false;
@@ -46,29 +50,51 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
         NULL);
 
+    // Initialize NOTIFYICONDATA structure
+    ZeroMemory(&nid, sizeof(nid));
+    nid.cbSize = sizeof(nid);
+    nid.hWnd = hwnd;
+    nid.uID = 1100; // Unique ID for the icon
+    nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    nid.uCallbackMessage = WM_APP + 1; // Custom message for tray icon
+    nid.hIcon = hLogoIconTray;         // Icon for the tray
+    strcpy_s(nid.szTip, "Macro Box");
+
+    Shell_NotifyIcon(NIM_ADD, &nid);
+
     return 0;
   }
+
   case WM_COMMAND:
   {
-    // Handle button click events
-    int controlId = LOWORD(wParam);
-    if (controlId >= 1 && controlId <= buttonHandles.size())
+    if (LOWORD(wParam) == IDM_TRAY_EXIT)
     {
-      // Execute the macro associated with the button
-      ExecuteMacro(buttonMacros[controlId - 1]);
+      Shell_NotifyIcon(NIM_DELETE, &nid);
+      DestroyWindow(hwnd);
     }
-    else if (controlId >= 101 && controlId < 101 + buttonHandles.size())
+    else
     {
-      // Show the macro input dialog for the gear button
-      ShowMacroInputDialog(hwnd, controlId - 100);
-    }
-    else if (controlId == IDC_BUTTON_MODIFY_GRID)
-    {
-      // Show the grid layout modification dialog
-      ShowGridLayoutDialog(hwnd);
+      // Handle button click events
+      int controlId = LOWORD(wParam);
+      if (controlId >= 1 && controlId <= buttonHandles.size())
+      {
+        // Execute the macro associated with the button
+        ExecuteMacro(buttonMacros[controlId - 1]);
+      }
+      else if (controlId >= 101 && controlId < 101 + buttonHandles.size())
+      {
+        // Show the macro input dialog for the gear button
+        ShowMacroInputDialog(hwnd, controlId - 100);
+      }
+      else if (controlId == IDC_BUTTON_MODIFY_GRID)
+      {
+        // Show the grid layout modification dialog
+        ShowGridLayoutDialog(hwnd);
+      }
     }
     return 0;
   }
+
   case WM_KEYDOWN:
   {
     if (wParam == VK_CONTROL)
@@ -127,19 +153,36 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return 0;
   }
+  case WM_APP + 1:
+  {
+    if (LOWORD(lParam) == WM_RBUTTONUP)
+    {
+      // Show a context menu when right-clicking the tray icon
+      HMENU hMenu = CreatePopupMenu();
+      AppendMenu(hMenu, MF_STRING, IDM_TRAY_EXIT, "Exit");
+      POINT pt;
+      GetCursorPos(&pt);
+      SetForegroundWindow(hwnd);
+      TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
+      DestroyMenu(hMenu);
+    }
+    else if (LOWORD(lParam) == WM_LBUTTONDBLCLK)
+    {
+      // Restore the window when double-clicking the tray icon
+      ShowWindow(hwnd, SW_RESTORE);
+      SetForegroundWindow(hwnd);
+    }
+    return 0;
+  }
+
   case WM_CLOSE:
   {
-    // When the window is closed, unregister hotkeys and destroy the window
-    for (size_t i = 0; i < buttonHandles.size(); ++i)
-    {
-      UnregisterHotKey(hwnd, ID_HOTKEY1 + i);
-    }
-    DestroyWindow(hwnd);
+    ShowWindow(hwnd, SW_HIDE);
     return 0;
   }
   case WM_DESTROY:
   {
-    // Post a quit message to end the message loop
+    Shell_NotifyIcon(NIM_DELETE, &nid);
     PostQuitMessage(0);
     return 0;
   }

@@ -40,6 +40,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   // Load icons from base64 strings
   hGearIcon = LoadIconFromBase64(gearIconBase64);
   HICON hLogoIcon = LoadIconFromBase64(logoIconBase64);
+  hLogoIconTray = LoadIconFromBase64(logoIconBase64);
 
   // Load user configuration
   std::string gridLayout;
