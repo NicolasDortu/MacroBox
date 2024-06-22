@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <shellapi.h>
+#include <windows.h>
 
 HICON hGearIcon;                       // Global icon handle
 HICON hLogoIconTray;                   // Global logo icon handle
@@ -137,22 +138,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     // Handle hotkey presses
     int hotkeyId = wParam;
+
     if (hotkeyId >= ID_HOTKEY1 && hotkeyId < ID_HOTKEY1 + buttonHandles.size())
     {
-      if (ctrlPressed)
+      // Bring the window to focus
+      SetForegroundWindow(hwnd);
+
+      if (!ctrlPressed)
       {
-        // If CTRL is pressed, defer the action
+        // Launch the macro when CTRL is released
         int digit = hotkeyId - ID_HOTKEY1 + 1;
         digitsPressed.push_back(digit);
-      }
-      else
-      {
-        // If CTRL is not pressed, execute immediately
-        SendMessage(hwnd, WM_COMMAND, hotkeyId - ID_HOTKEY1 + 1, 0);
       }
     }
     return 0;
   }
+
   case WM_APP + 1:
   {
     if (LOWORD(lParam) == WM_RBUTTONUP)
@@ -183,6 +184,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   case WM_DESTROY:
   {
     Shell_NotifyIcon(NIM_DELETE, &nid);
+    for (size_t i = 0; i < buttonHandles.size(); ++i)
+    {
+      UnregisterHotKey(hwnd, ID_HOTKEY1 + i);
+    }
+
     PostQuitMessage(0);
     return 0;
   }

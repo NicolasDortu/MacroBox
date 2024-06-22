@@ -17,7 +17,6 @@
 
 // Global variables
 extern HICON hGearIcon;
-extern HICON hLogoIcon;
 extern HICON hLogoIconTray;
 extern std::vector<HWND> buttonHandles;
 extern std::vector<HWND> gearButtonHandles;
