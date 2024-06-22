@@ -138,8 +138,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     // Handle hotkey presses
     int hotkeyId = wParam;
+    HWND foregroundWindow = GetForegroundWindow();
 
-    if (hotkeyId >= ID_HOTKEY1 && hotkeyId < ID_HOTKEY1 + buttonHandles.size())
+    if ((hotkeyId >= ID_HOTKEY1 && hotkeyId < ID_HOTKEY1 + buttonHandles.size()) & (foregroundWindow == hwnd))
+    {
+      // If the window is already in focus
+      int digit = hotkeyId - ID_HOTKEY1 + 1;
+      digitsPressed.push_back(digit);
+    }
+    else
     {
       // Bring the window to focus
       SetForegroundWindow(hwnd);
