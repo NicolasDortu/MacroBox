@@ -119,6 +119,24 @@ void ShowMacroInputDialog(HWND hwnd, int buttonId)
 }
 
 // Grid Layout Dialog Procedure
+// Function to restart the application when grid is modified
+void RestartApplication(HWND hwnd)
+{
+  // Retrieve the application file path
+  char filePath[MAX_PATH];
+  GetModuleFileName(NULL, filePath, MAX_PATH);
+
+  // Get the current working directory
+  char currentDir[MAX_PATH];
+  GetCurrentDirectory(MAX_PATH, currentDir);
+
+  // Launch a new instance of the application
+  ShellExecute(hwnd, "open", filePath, NULL, currentDir, SW_SHOWNORMAL);
+
+  // Exit the current instance
+  PostQuitMessage(0);
+}
+
 LRESULT CALLBACK GridLayoutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
   switch (message)
@@ -139,8 +157,10 @@ LRESULT CALLBACK GridLayoutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LP
 
         // Save the grid layout configuration without modifying the macros
         SaveConfigurationGrid(gridLayout);
-        MessageBox(hDlg, "Grid layout updated. Please restart the application to apply changes.", "Info", MB_OK);
         DestroyWindow(hDlg);
+
+        // Restart the application to apply changes
+        RestartApplication(GetParent(hDlg));
       }
       else
       {
