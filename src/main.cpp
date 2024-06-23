@@ -45,16 +45,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   // Load user configuration
   std::string gridLayout;
   LoadConfiguration(gridLayout, buttonMacros);
-  int rows = 3, cols = 3; // Default to 3x3 grid
-  sscanf(gridLayout.c_str(), "%dx%d", &rows, &cols);
+  int rows = 3, cols = 3; // Default to 3x3 grid if not specified in the config
+  if (sscanf(gridLayout.c_str(), "%dx%d", &rows, &cols) != 2)
+  {
+    // Handle invalid or missing grid layout configuration
+    rows = 3;
+    cols = 3;
+    SaveConfigurationGrid("3x3");
+    MessageBox(NULL, "Invalid grid layout in configuration file. Using default 3x3 grid.", "Warning", MB_OK);
+  }
 
   // Create the main window with adjusted size based on grid layout
+  // Resizing is locked but maybe i will implement resizing of the buttons based on the window size instead of fixed size
   HWND hwnd = CreateWindowEx(
       0,
       CLASS_NAME,
       "Macro Box",
-      WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, CW_USEDEFAULT, 100 + cols * 150, 100 + rows * 50 + 50,
+      WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
+      CW_USEDEFAULT, CW_USEDEFAULT, 100 + cols * 150, 100 + rows * 50,
       NULL,
       NULL,
       hInstance,
