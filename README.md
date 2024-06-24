@@ -7,6 +7,8 @@ For now, macros only start program with the cmd prompt. Later it should permits 
   <li>Stop deleting macros when the grid is resized</li>
   <li>Add possibilty to launch MacroBox at startup</li>
   <li>Fix bug tray icon not being refreshed causing multiple instance (only visual)</li>
+  <li>Put the actual macro instead of "Button X"</li>
+  <li>Add possibility to press Enter and Tab to validate/switch input box</li>
   <li>MOST IMPORTANTLY : MAKE A GOOD DESIGN !</li>
 </ul>
 
